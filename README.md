@@ -20,5 +20,12 @@ Setting up local cluster:
 Running scripts:
 
 ```
-task compile-and-execute
+task compile
+task execute
+```
+
+Running services:
+
+```
+tilt up
 ```
