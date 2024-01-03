@@ -11,8 +11,8 @@ brew install tilt-dev/tap/ctlptl
 Setting up local cluster:
 
 ```
-./scripts/kind-cluster-delete.sh
-./scripts/kind-cluster-create.sh
+.scripts/kind-cluster-delete.sh
+.scripts/kind-cluster-create.sh
 ```
 
 ## Usage
