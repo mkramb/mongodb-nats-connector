@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+  compile-and-execute:
+    cmds:
+      - go build -o dist/mongodb-nats-connector
+      - ./dist/mongodb-nats-connector
