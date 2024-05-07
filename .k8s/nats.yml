@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: nats
+spec:
+    serviceName: nats-1
+    replicas: 1
+    selector:
+        matchLabels:
+            app: nats
+    template:
+        metadata:
+            labels:
+                app: nats
+                selector: nats
+        spec:
+            containers:
+                -   name: nats
+                    image: nats
+                    ports:
+                        -   containerPort: 4222
+                    args: [ "--js" ]
+                    readinessProbe:
+                        tcpSocket:
+                            port: 4222
+                        initialDelaySeconds: 5
+                        periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: nats
+    labels:
+        app: nats
+spec:
+    clusterIP: None
+    selector:
+        app: nats
+    ports:
+        -   protocol: TCP
+            port: 4222
+            targetPort: 4222
+            name: nats-port

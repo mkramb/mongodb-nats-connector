@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mongodb-nats-connector
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: mongodb-nats-connector
+    template:
+        metadata:
+            labels:
+                app: mongodb-nats-connector
+        spec:
+            containers:
+                -   name: mongodb-nats-connector
+                    image: mongodb-nats-connector
+
