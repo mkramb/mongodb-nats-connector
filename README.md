@@ -42,7 +42,7 @@ tilt up -- --only-infra
 Start 3 separate connector instances (in separate terminals):
 
 ```
-./mongodb-nats-connector -cluster=connector -size=3 -nats=nats://127.0.0.1:4222
-./mongodb-nats-connector -cluster=connector -size=3 -nats=nats://127.0.0.1:4222
-./mongodb-nats-connector -cluster=connector -size=3 -nats=nats://127.0.0.1:4222
+NATS_CLUSTER_SIZE=3 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
+NATS_CLUSTER_SIZE=3 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
+NATS_CLUSTER_SIZE=3 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
 ```

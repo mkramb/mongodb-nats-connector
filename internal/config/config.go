@@ -13,7 +13,7 @@ type ConnectorConfig struct {
 }
 
 type HttpConfig struct {
-	Port int `env:"HTTP_PORT, required"`
+	Port int `env:"HTTP_PORT, default=3000"`
 }
 
 type NatsConfig struct {
