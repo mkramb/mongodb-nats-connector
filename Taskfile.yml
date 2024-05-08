@@ -3,8 +3,8 @@ version: '3'
 tasks:
   compile:
     cmds:
-      - go build -o mongodb-nats-connector cmd/api/main.go
+      - go build -o mongodb-nats-connector cmd/mongodb-nats-connector/main.go
 
   execute:
     cmds:
-      - go run cmd/api/main.go
+      - go run cmd/mongodb-nats-connector/main.go
