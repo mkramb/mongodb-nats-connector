@@ -1,28 +1,23 @@
 package main
 
 import (
-	"sync"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/mkramb/mongodb-nats-connector/internal/http"
-	"github.com/mkramb/mongodb-nats-connector/internal/raft"
+	"github.com/mkramb/mongodb-nats-connector/internal/nats"
 )
 
 func main() {
 	cfg := config.NewConfig()
-	wg := sync.WaitGroup{}
 
-	wg.Add(2)
+	gracefulShutdown := make(chan os.Signal, 1)
+	signal.Notify(gracefulShutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		defer wg.Done()
-		http.StartHttp(cfg)
-	}()
+	go http.StartHttp(cfg)
+	go nats.StartRaft(cfg)
 
-	go func() {
-		defer wg.Done()
-		raft.StartRaft(cfg)
-	}()
-
-	wg.Wait()
+	<-gracefulShutdown
 }
