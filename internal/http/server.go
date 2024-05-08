@@ -18,7 +18,7 @@ func StartHttp(cfg *config.ConnectorConfig) {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		panic(fmt.Sprintf("Cannot start server: %s", err))
+		panic(fmt.Sprintf("Error starting http server: %s", err))
 	}
 }
 

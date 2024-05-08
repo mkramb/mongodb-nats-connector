@@ -18,7 +18,7 @@ func StartRaft(cfg *config.ConnectorConfig) {
 	rpc, err := graft.NewNatsRpc(opts)
 
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Error starting graft: %s", err))
 	}
 
 	var (
