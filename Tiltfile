@@ -9,7 +9,11 @@ docker_prune_settings(
     keep_recent=2
 )
 
-k8s_yaml([".k8s/nats.yml"])
+k8s_yaml([
+    ".k8s/mongodb.yml",
+    ".k8s/nats.yml"
+])
+
 k8s_resource(
     "nats",
     port_forwards=["4222:4222"]

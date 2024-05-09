@@ -5,17 +5,11 @@ import (
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/nats-io/graft"
-	"github.com/nats-io/nats.go"
 )
 
-func StartRaft(cfg *config.ConnectorConfig) {
-	var (
-		opts = &nats.DefaultOptions
-		ci   = graft.ClusterInfo{Name: cfg.NatsConfig.ClusterName, Size: cfg.NatsConfig.ClusterSize}
-	)
-
-	opts.Url = cfg.NatsConfig.ServerUrl
-	rpc, err := graft.NewNatsRpc(opts)
+func StartRaft(cfg *config.ConnectorConfig, natsConnection *NatsClient) {
+	cluster := graft.ClusterInfo{Name: cfg.NatsConfig.ClusterName, Size: cfg.NatsConfig.ClusterSize}
+	rpc, err := graft.NewNatsRpcFromConn(natsConnection.Conn)
 
 	if err != nil {
 		panic(fmt.Sprintf("Error starting graft: %s", err))
@@ -27,7 +21,7 @@ func StartRaft(cfg *config.ConnectorConfig) {
 		handler      = graft.NewChanHandler(stateChangeC, errC)
 	)
 
-	node, err := graft.New(ci, handler, rpc, cfg.NatsConfig.ClusterName)
+	node, err := graft.New(cluster, handler, rpc, cfg.NatsConfig.ClusterName)
 
 	if err != nil {
 		panic(err)
