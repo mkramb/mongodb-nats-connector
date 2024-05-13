@@ -3,14 +3,21 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
+	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 )
 
-func StartHttp(cfg *config.ConnectorConfig) {
+type ServerHttp struct {
+	Config *config.Config
+	Logger logger.Logger
+}
+
+func (s *ServerHttp) StartHttp() {
 	server := &http.Server{
-		Addr:        fmt.Sprintf(":%d", cfg.HttpConfig.Port),
+		Addr:        fmt.Sprintf(":%d", s.Config.Http.Port),
 		Handler:     registerRoutes(),
 		IdleTimeout: time.Minute,
 	}
@@ -18,7 +25,8 @@ func StartHttp(cfg *config.ConnectorConfig) {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		panic(fmt.Sprintf("Error starting http server: %s", err))
+		s.Logger.Error("Error starting http server", err)
+		os.Exit(1)
 	}
 }
 

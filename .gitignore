@@ -1,2 +1,2 @@
-./mongodb-nats-connector
+/mongodb-nats-connector
 *.log
