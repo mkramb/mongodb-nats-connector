@@ -39,9 +39,10 @@ Only start Nats server:
 tilt up -- --only-infra
 ```
 
-Start 2 separate connector instances (in separate terminals):
+Start 3 separate connector instances (in separate terminals):
 
 ```
 HTTP_PORT=3000 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
 HTTP_PORT=3001 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
+HTTP_PORT=3002 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
 ```

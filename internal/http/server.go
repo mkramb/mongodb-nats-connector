@@ -18,7 +18,7 @@ type ServerHttp struct {
 func (s *ServerHttp) StartHttp() {
 	server := &http.Server{
 		Addr:        fmt.Sprintf(":%d", s.Config.Http.Port),
-		Handler:     registerRoutes(),
+		Handler:     s.registerRoutes(),
 		IdleTimeout: time.Minute,
 	}
 
@@ -28,11 +28,4 @@ func (s *ServerHttp) StartHttp() {
 		s.Logger.Error("Error starting http server", err)
 		os.Exit(1)
 	}
-}
-
-func registerRoutes() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", healthHandler)
-
-	return mux
 }

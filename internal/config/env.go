@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"log/slog"
 	"os"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
@@ -19,7 +20,7 @@ type HttpConfig struct {
 
 type NatsConfig struct {
 	ServerUrl   string `env:"NATS_SERVER_URL, required"`
-	ClusterSize int    `env:"NATS_CLUSTER_SIZE, default=2"`
+	ClusterSize int    `env:"NATS_CLUSTER_SIZE, default=3"`
 	ClusterName string `env:"NATS_CLUSTER_NAME, default=connector"`
 	LogPath     string `env:"NATS_LOG_PATH, default=/tmp/graft.log"`
 }
@@ -30,7 +31,7 @@ func NewEnvConfig(logger logger.Logger) *Config {
 	var c Config
 
 	if err := envconfig.Process(ctx, &c); err != nil {
-		logger.Error("Error parsing environment values", err)
+		logger.Error("Error parsing environment values", slog.Any("err", err))
 		os.Exit(1)
 	}
 
