@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"log/slog"
 	"os"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
@@ -25,13 +24,13 @@ type NatsConfig struct {
 	LogPath     string `env:"NATS_LOG_PATH, default=/tmp/graft.log"`
 }
 
-func NewEnvConfig(logger logger.Logger) *Config {
+func NewEnvConfig(log logger.Logger) *Config {
 	ctx := context.Background()
 
 	var c Config
 
 	if err := envconfig.Process(ctx, &c); err != nil {
-		logger.Error("Error parsing environment values", slog.Any("err", err))
+		log.Error("Error parsing environment values", logger.AsError(err))
 		os.Exit(1)
 	}
 

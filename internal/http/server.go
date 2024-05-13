@@ -25,7 +25,7 @@ func (s *ServerHttp) StartHttp() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		s.Logger.Error("Error starting http server", err)
+		s.Logger.Error("Error starting http server", logger.AsError(err))
 		os.Exit(1)
 	}
 }

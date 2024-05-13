@@ -1,7 +1,7 @@
 package raft
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
@@ -20,7 +20,8 @@ func (s *ServerRaft) StartRaft() {
 	rpc, err := graft.NewNatsRpcFromConn(s.Nats.Client.Conn)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error starting graft: %s", err))
+		s.Logger.Error("Error starting graft", logger.AsError(err))
+		os.Exit(1)
 	}
 
 	var (
@@ -32,19 +33,21 @@ func (s *ServerRaft) StartRaft() {
 	node, err := graft.New(cluster, handler, rpc, s.Config.Nats.ClusterName)
 
 	if err != nil {
-		panic(err)
+		s.Logger.Error("Error starting new graft node", logger.AsError(err))
+		os.Exit(1)
 	}
 
 	defer node.Close()
 
-	stateHandler(node.State())
+	s.stateHandler(node.State())
 
 	for {
 		select {
 		case change := <-stateChangeC:
-			stateHandler(change.To)
+			s.stateHandler(change.To)
 		case err := <-errC:
-			fmt.Printf("Error: %s\n", err)
+			s.Logger.Error("Error processing graft state", logger.AsError(err))
+			os.Exit(1)
 		}
 	}
 }

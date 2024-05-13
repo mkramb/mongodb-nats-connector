@@ -1,22 +1,18 @@
 package raft
 
 import (
-	"fmt"
-
 	"github.com/nats-io/graft"
 )
 
-func stateHandler(state graft.State) {
+func (s *ServerRaft) stateHandler(state graft.State) {
 	switch state {
 	case graft.LEADER:
-		fmt.Println("***Becoming leader***")
+		s.Logger.Info("***Becoming leader***")
 	case graft.FOLLOWER:
-		fmt.Println("***Becoming follower***")
+		s.Logger.Info("***Becoming follower***")
 	case graft.CANDIDATE:
-		fmt.Println("***Becoming candidate***")
+		s.Logger.Info("***Becoming candidate***")
 	case graft.CLOSED:
 		return
-	default:
-		panic(fmt.Sprintf("Unknown state: %s", state))
 	}
 }

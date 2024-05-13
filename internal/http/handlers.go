@@ -2,8 +2,9 @@ package http
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
+
+	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 )
 
 func (s *ServerHttp) registerRoutes() http.Handler {
@@ -19,7 +20,7 @@ func (s *ServerHttp) healthHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		s.Logger.Error("Error handling JSON marshal", slog.Any("err", err))
+		s.Logger.Error("Error handling JSON marshal", logger.AsError(err))
 	}
 
 	_, _ = w.Write(jsonResp)

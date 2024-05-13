@@ -1,7 +1,6 @@
 package nats
 
 import (
-	"log/slog"
 	"os"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
@@ -17,11 +16,11 @@ type natsClient struct {
 	JetStream nats.JetStreamContext
 }
 
-func InitNats(logger logger.Logger, url string) *Nats {
+func InitNats(log logger.Logger, url string) *Nats {
 	nc, err := nats.Connect(url)
 
 	if err != nil {
-		logger.Error("Error connecting to nats", slog.Any("err", err))
+		log.Error("Error connecting to nats", logger.AsError(err))
 		os.Exit(1)
 	}
 
@@ -30,7 +29,7 @@ func InitNats(logger logger.Logger, url string) *Nats {
 	if err != nil {
 		nc.Close()
 
-		logger.Error("Error creating jetstream context", slog.Any("err", err))
+		log.Error("Error creating jetstream context", logger.AsError(err))
 		os.Exit(1)
 	}
 
