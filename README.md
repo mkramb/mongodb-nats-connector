@@ -52,7 +52,7 @@ tilt down
 
 ## Tips
 
-Only start Nats server:
+Only start Nats / Mongo server:
 
 ```
 tilt up -- --only-infra
