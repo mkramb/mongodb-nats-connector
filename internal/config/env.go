@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	Http *HttpConfig
-	Nats *NatsConfig
+	Http  *HttpConfig
+	Nats  *NatsConfig
+	Mongo *MongoConfig
 }
 
 type HttpConfig struct {
@@ -22,6 +23,11 @@ type NatsConfig struct {
 	ClusterSize int    `env:"NATS_CLUSTER_SIZE, default=3"`
 	ClusterName string `env:"NATS_CLUSTER_NAME, default=connector"`
 	LogPath     string `env:"NATS_LOG_PATH, default=/tmp/graft.log"`
+}
+
+type MongoConfig struct {
+	ServerUri        string   `env:"MONGO_SERVER_URI, required"`
+	WatchCollections []string `env:"MONGO_WATCH_COLLECTIONS, required"`
 }
 
 func NewEnvConfig(log logger.Logger) *Config {

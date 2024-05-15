@@ -1,21 +1,40 @@
 # mongodb-nats-connector
 
-## Prerequisite
+## Usage
+
+The minimum number of nodes required to tolerate faults and still reach consensus is three.
+Lets start three separate connector instances (in separate terminals):
+
+```
+export MONGO_SERVER_URI="mongodb://localhost:27017/platform?replicaSet=tilt&directConnection=true"
+export MONGO_WATCH_COLLECTIONS="users,movies"
+export NATS_SERVER_URL=nats://127.0.0.1:4222
+
+HTTP_PORT=3000 ./mongodb-nats-connector
+HTTP_PORT=3001 ./mongodb-nats-connector
+HTTP_PORT=3002 ./mongodb-nats-connector
+```
+
+## Development
+
+Prerequisite
 
 ```
 brew install kind
 brew install tilt-dev/tap/tilt
 brew install tilt-dev/tap/ctlptl
+
+brew install mongosh
+brew tap nats-io/nats-tools
+brew install nats-io/nats-tools/nats
 ```
 
 Setting up local cluster:
 
 ```
-.scripts/kind-cluster-delete.sh
-.scripts/kind-cluster-create.sh
+.scripts/cluster_delete.sh
+.scripts/cluster_create.sh
 ```
-
-## Usage
 
 Running scripts:
 
@@ -37,12 +56,4 @@ Only start Nats server:
 
 ```
 tilt up -- --only-infra
-```
-
-Start 3 separate connector instances (in separate terminals):
-
-```
-HTTP_PORT=3000 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
-HTTP_PORT=3001 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
-HTTP_PORT=3002 NATS_SERVER_URL=nats://127.0.0.1:4222 ./mongodb-nats-connector
 ```
