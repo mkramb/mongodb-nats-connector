@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -33,6 +34,9 @@ func main() {
 
 	go raft.StartRaft()
 	go http.StartHttp()
+
+	defer nats.Conn.Close()
+	defer mongo.Conn.Disconnect(context.TODO())
 
 	<-shutdown
 }

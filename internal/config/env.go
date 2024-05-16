@@ -26,8 +26,10 @@ type NatsConfig struct {
 }
 
 type MongoConfig struct {
-	ServerUri        string   `env:"MONGO_SERVER_URI, required"`
+	ServerUri        string   `env:"MONGO_URI, required"`
+	WatchDatabase    string   `env:"MONGO_WATCH_DATABASE, required"`
 	WatchCollections []string `env:"MONGO_WATCH_COLLECTIONS, required"`
+	WatchOperations  []string `env:"MONGO_WATCH_OPERATIONS, default=insert,update,replace"`
 }
 
 func NewEnvConfig(log logger.Logger) *Config {
