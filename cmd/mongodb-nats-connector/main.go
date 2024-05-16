@@ -21,6 +21,9 @@ func main() {
 	nats := nats.InitClient(log, cfg.Nats.ServerUrl)
 	mongo := mongo.InitClient(log, cfg.Mongo.ServerUri)
 
+	defer nats.Conn.Close()
+	defer mongo.Conn.Disconnect(context.TODO())
+
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
@@ -34,9 +37,6 @@ func main() {
 
 	go raft.StartRaft()
 	go http.StartHttp()
-
-	defer nats.Conn.Close()
-	defer mongo.Conn.Disconnect(context.TODO())
 
 	<-shutdown
 }
