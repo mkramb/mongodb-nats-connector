@@ -21,7 +21,7 @@ func main() {
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
 	log := logger.NewLogger()
-	cfg := config.NewEnvConfig(log)
+	cfg := config.NewEnvConfig(ctx, log)
 
 	nats := nats.InitClient(log, cfg.Nats.ServerUrl)
 	mongo := mongo.InitClient(ctx, log, cfg.Mongo.ServerUri)
