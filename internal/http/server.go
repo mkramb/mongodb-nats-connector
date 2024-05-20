@@ -1,9 +1,9 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
@@ -11,21 +11,38 @@ import (
 )
 
 type Server struct {
-	Config *config.Config
-	Logger logger.Logger
+	Http    *http.Server
+	Config  *config.Config
+	Logger  logger.Logger
+	Context context.Context
 }
 
-func (s *Server) StartHttp() {
-	server := &http.Server{
-		Addr:        fmt.Sprintf(":%d", s.Config.Http.Port),
-		Handler:     s.registerRoutes(),
+func NewServer(ctx context.Context, log logger.Logger, cfg *config.Config) *Server {
+	httpServer := &http.Server{
+		Addr:        fmt.Sprintf(":%d", cfg.Http.Port),
 		IdleTimeout: time.Minute,
 	}
 
-	err := server.ListenAndServe()
-
-	if err != nil {
-		s.Logger.Error("Error starting http server", logger.AsError(err))
-		os.Exit(1)
+	return &Server{
+		Http:    httpServer,
+		Config:  cfg,
+		Logger:  log,
+		Context: ctx,
 	}
+}
+
+func (s *Server) StartHttp(shutdown context.CancelFunc) {
+	s.Http.Handler = s.registerRoutes()
+
+	go func() {
+		if err := s.Http.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			s.Logger.Error("Error starting http server", logger.AsError(err))
+			shutdown()
+		}
+	}()
+
+	defer s.Http.Shutdown(s.Context)
+	defer s.Logger.Info("Closing http client")
+
+	<-s.Context.Done()
 }

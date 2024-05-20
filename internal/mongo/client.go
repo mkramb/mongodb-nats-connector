@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"context"
-	"os"
+	"net/url"
 	"time"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
@@ -11,34 +11,62 @@ import (
 )
 
 type Client struct {
-	Conn   *mongo.Client
-	Logger logger.Logger
+	Db      *mongo.Database
+	Conn    *mongo.Client
+	Logger  logger.Logger
+	Context context.Context
 }
 
-func InitClient(log logger.Logger, uri string) *Client {
-	conn, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+func InitClient(ctx context.Context, log logger.Logger, uri string) *Client {
+	parsedURI, err := url.Parse(uri)
+
+	if err != nil {
+		log.Error("Invalid MongoDB URI", logger.AsError(err))
+		panic("Invalid MongoDB URI")
+	}
+
+	if parsedURI.Path == "" || parsedURI.Path == "/" {
+		log.Error("Database not provided in MongoDB URI")
+		panic("Database not provided in MongoDB URI")
+	}
+
+	conn, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 
 	if err != nil {
 		log.Error("Error connecting to mongo", logger.AsError(err))
-		os.Exit(1)
+		panic("Error connecting to mongo")
 	}
 
+	database := parsedURI.Path[1:]
+	db := conn.Database(database)
+
 	return &Client{
-		Conn:   conn,
-		Logger: log,
+		Db:      db,
+		Conn:    conn,
+		Logger:  log,
+		Context: ctx,
 	}
 }
 
-func (c *Client) Watch(database string, collections, operations []string) *mongo.ChangeStream {
-	db := c.Conn.Database(database)
+func (c *Client) StartWatch(collections, operations []string) *mongo.ChangeStream {
+	c.Logger.Info("Starting mongo watcher")
 
 	opts := options.ChangeStream().SetMaxAwaitTime(2 * time.Second)
-	changeStream, err := db.Watch(context.TODO(), constructPipeline(collections, operations), opts)
+	stream, err := c.Db.Watch(c.Context, constructPipeline(collections, operations), opts)
 
 	if err != nil {
 		c.Logger.Error("Error starting mongo change stream", logger.AsError(err))
-		os.Exit(1)
+		panic("Error starting mongo change stream")
 	}
 
-	return changeStream
+	return stream
+}
+
+func (c *Client) Close() {
+	c.Logger.Info("Closing mongo client")
+	err := c.Conn.Ping(c.Context, nil)
+
+	if err == nil {
+		c.Conn.Disconnect(c.Context)
+	}
 }

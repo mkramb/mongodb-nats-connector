@@ -10,6 +10,6 @@ type Logger interface {
 	Info(msg string, args ...any)
 }
 
-func NewJSONLogger() Logger {
+func NewLogger() Logger {
 	return slog.New(slog.NewJSONHandler(os.Stdout, nil))
 }

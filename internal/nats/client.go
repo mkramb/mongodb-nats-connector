@@ -1,8 +1,6 @@
 package nats
 
 import (
-	"os"
-
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 	"github.com/nats-io/nats.go"
 )
@@ -10,6 +8,7 @@ import (
 type Client struct {
 	Conn      *nats.Conn
 	JetStream nats.JetStreamContext
+	Logger    logger.Logger
 }
 
 func InitClient(log logger.Logger, url string) *Client {
@@ -17,7 +16,7 @@ func InitClient(log logger.Logger, url string) *Client {
 
 	if err != nil {
 		log.Error("Error connecting to nats", logger.AsError(err))
-		os.Exit(1)
+		panic("Error connecting to nats")
 	}
 
 	js, _ := conn.JetStream()
@@ -25,5 +24,14 @@ func InitClient(log logger.Logger, url string) *Client {
 	return &Client{
 		Conn:      conn,
 		JetStream: js,
+		Logger:    log,
+	}
+}
+
+func (c *Client) Close() {
+	c.Logger.Info("Closing nats client")
+
+	if c.Conn.IsConnected() {
+		c.Conn.Close()
 	}
 }

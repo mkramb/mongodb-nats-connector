@@ -1,7 +1,7 @@
 package raft
 
 import (
-	"os"
+	"context"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
@@ -11,19 +11,33 @@ import (
 )
 
 type Server struct {
-	Nats   *nats.Client
-	Mongo  *mongo.Client
-	Config *config.Config
-	Logger logger.Logger
+	Nats    *nats.Client
+	Cluster *graft.ClusterInfo
+	Mongo   *mongo.Client
+	Config  *config.Config
+	Logger  logger.Logger
+	Context context.Context
 }
 
-func (s *Server) StartRaft() {
-	cluster := graft.ClusterInfo{Name: s.Config.Nats.ClusterName, Size: s.Config.Nats.ClusterSize}
-	rpc, err := graft.NewNatsRpcFromConn(s.Nats.Conn)
+func NewServer(ctx context.Context, log logger.Logger, cfg *config.Config, nats *nats.Client, mongo *mongo.Client) *Server {
+	cluster := &graft.ClusterInfo{Name: cfg.Nats.ClusterName, Size: cfg.Nats.ClusterSize}
+
+	return &Server{
+		Nats:    nats,
+		Cluster: cluster,
+		Mongo:   mongo,
+		Config:  cfg,
+		Logger:  log,
+		Context: ctx,
+	}
+}
+
+func (s *Server) StartRaft(shutdown context.CancelFunc) {
+	natsRpc, err := graft.NewNatsRpcFromConn(s.Nats.Conn)
 
 	if err != nil {
-		s.Logger.Error("Error starting raft", logger.AsError(err))
-		os.Exit(1)
+		s.Logger.Error("Error starting RAFT connection", logger.AsError(err))
+		shutdown()
 	}
 
 	var (
@@ -32,24 +46,36 @@ func (s *Server) StartRaft() {
 		handler      = graft.NewChanHandler(stateChangeC, errC)
 	)
 
-	node, err := graft.New(cluster, handler, rpc, s.Config.Nats.ClusterName)
+	node, err := graft.New(*s.Cluster, handler, natsRpc, s.Config.Nats.ClusterName)
 
 	if err != nil {
-		s.Logger.Error("Error starting new raft node", logger.AsError(err))
-		os.Exit(1)
+		s.Logger.Error("Error starting new RAFT node", logger.AsError(err))
+		shutdown()
 	}
 
 	defer node.Close()
+	defer natsRpc.Close()
+	defer s.Logger.Info("Closing raft connection")
 
-	s.stateHandler(node.State())
+	s.stateHandler(graft.CLOSED, node.State())
 
 	for {
 		select {
+
 		case change := <-stateChangeC:
-			s.stateHandler(change.To)
+			if change.To != graft.CLOSED {
+				s.stateHandler(change.From, change.To)
+			} else {
+				s.Logger.Info("RAFT connection is closed")
+				shutdown()
+			}
+
 		case err := <-errC:
 			s.Logger.Error("Error processing raft state", logger.AsError(err))
-			os.Exit(1)
+			shutdown()
+
+		case <-s.Context.Done():
+			return
 		}
 	}
 }

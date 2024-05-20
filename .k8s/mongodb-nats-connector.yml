@@ -18,9 +18,7 @@ spec:
           image: mongodb-nats-connector
           env:
             - name: MONGO_URI
-              value: "mongodb://mongodb:27017/platform?replicaSet=tilt&directConnection=true"
-            - name: MONGO_WATCH_DATABASE
-              value: "test"
+              value: "mongodb://mongodb:27017/test?replicaSet=tilt&directConnection=true"
             - name: MONGO_WATCH_COLLECTIONS
               value: "users,movies"
             - name: NATS_SERVER_URL

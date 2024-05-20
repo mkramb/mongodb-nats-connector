@@ -15,28 +15,32 @@ import (
 )
 
 func main() {
-	log := logger.NewJSONLogger()
-	cfg := config.NewEnvConfig(log)
-
-	nats := nats.InitClient(log, cfg.Nats.ServerUrl)
-	mongo := mongo.InitClient(log, cfg.Mongo.ServerUri)
-
-	defer nats.Conn.Close()
-	defer mongo.Conn.Disconnect(context.TODO())
+	ctx, shutdownServer := context.WithCancel(context.Background())
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	http := http.Server{Config: cfg, Logger: log}
-	raft := raft.Server{
-		Nats:   nats,
-		Mongo:  mongo,
-		Config: cfg,
-		Logger: log,
-	}
+	log := logger.NewLogger()
+	cfg := config.NewEnvConfig(log)
 
-	go raft.StartRaft()
-	go http.StartHttp()
+	nats := nats.InitClient(log, cfg.Nats.ServerUrl)
+	mongo := mongo.InitClient(ctx, log, cfg.Mongo.ServerUri)
+
+	defer nats.Close()
+	defer mongo.Close()
+
+	http := http.NewServer(ctx, log, cfg)
+	raft := raft.NewServer(ctx, log, cfg, nats, mongo)
+
+	log.Info("Starting http server")
+	log.Info("Starting raft server")
+
+	go http.StartHttp(shutdownServer)
+	go raft.StartRaft(shutdownServer)
 
 	<-shutdown
+
+	log.Info("Received shutdown signal")
+
+	shutdownServer()
 }

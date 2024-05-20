@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"os"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 	"github.com/sethvargo/go-envconfig"
@@ -27,7 +26,6 @@ type NatsConfig struct {
 
 type MongoConfig struct {
 	ServerUri        string   `env:"MONGO_URI, required"`
-	WatchDatabase    string   `env:"MONGO_WATCH_DATABASE, required"`
 	WatchCollections []string `env:"MONGO_WATCH_COLLECTIONS, required"`
 	WatchOperations  []string `env:"MONGO_WATCH_OPERATIONS, default=insert,update,replace"`
 }
@@ -39,7 +37,7 @@ func NewEnvConfig(log logger.Logger) *Config {
 
 	if err := envconfig.Process(ctx, &c); err != nil {
 		log.Error("Error parsing environment values", logger.AsError(err))
-		os.Exit(1)
+		panic("Error parsing environment values")
 	}
 
 	return &c

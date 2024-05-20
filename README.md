@@ -6,8 +6,7 @@ The minimum number of nodes required to tolerate faults and still reach consensu
 Lets start three separate connector instances (in separate terminals):
 
 ```
-export MONGO_URI="mongodb://localhost:27017/?replicaSet=tilt&directConnection=true"
-export MONGO_WATCH_DATABASE="test"
+export MONGO_URI="mongodb://localhost:27017/test?replicaSet=tilt&directConnection=true"
 export MONGO_WATCH_COLLECTIONS="users,movies"
 export NATS_SERVER_URL=nats://127.0.0.1:4222
 
