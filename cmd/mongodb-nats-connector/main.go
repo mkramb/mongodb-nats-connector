@@ -35,8 +35,8 @@ func main() {
 	log.Info("Starting http server")
 	log.Info("Starting raft server")
 
-	go http.StartHttp(shutdownServer)
-	go raft.StartRaft(shutdownServer)
+	go http.StartHttp()
+	go raft.StartRaft()
 
 	<-shutdown
 

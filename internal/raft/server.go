@@ -32,12 +32,12 @@ func NewServer(ctx context.Context, log logger.Logger, cfg *config.Config, nats 
 	}
 }
 
-func (s *Server) StartRaft(shutdown context.CancelFunc) {
+func (s *Server) StartRaft() {
 	natsRpc, err := graft.NewNatsRpcFromConn(s.Nats.Conn)
 
 	if err != nil {
 		s.Logger.Error("Error starting RAFT connection", logger.AsError(err))
-		shutdown()
+		return
 	}
 
 	var (
@@ -50,7 +50,6 @@ func (s *Server) StartRaft(shutdown context.CancelFunc) {
 
 	if err != nil {
 		s.Logger.Error("Error starting new RAFT node", logger.AsError(err))
-		shutdown()
 	}
 
 	defer node.Close()
@@ -63,16 +62,16 @@ func (s *Server) StartRaft(shutdown context.CancelFunc) {
 		select {
 
 		case change := <-stateChangeC:
-			if change.To != graft.CLOSED {
-				s.stateHandler(change.From, change.To)
-			} else {
+			if change.To == graft.CLOSED {
 				s.Logger.Info("RAFT connection is closed")
-				shutdown()
+				return
+			} else {
+				s.stateHandler(change.From, change.To)
 			}
 
 		case err := <-errC:
 			s.Logger.Error("Error processing raft state", logger.AsError(err))
-			shutdown()
+			return
 
 		case <-s.Context.Done():
 			return

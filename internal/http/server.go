@@ -31,13 +31,12 @@ func NewServer(ctx context.Context, log logger.Logger, cfg *config.Config) *Serv
 	}
 }
 
-func (s *Server) StartHttp(shutdown context.CancelFunc) {
+func (s *Server) StartHttp() {
 	s.Http.Handler = s.registerRoutes()
 
 	go func() {
 		if err := s.Http.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.Logger.Error("Error starting http server", logger.AsError(err))
-			shutdown()
 		}
 	}()
 
