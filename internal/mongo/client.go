@@ -5,38 +5,44 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Client struct {
-	Db      *mongo.Database
-	Conn    *mongo.Client
-	Logger  logger.Logger
+type Options struct {
 	Context context.Context
+	Logger  logger.Logger
+	Config  *config.MongoConfig
+}
+
+type Client struct {
+	Db   *mongo.Database
+	Conn *mongo.Client
+	Options
 }
 
 type ChangeStreamCallback func(data []byte)
 
-func InitClient(ctx context.Context, log logger.Logger, uri string) *Client {
-	parsedURI, err := url.Parse(uri)
+func (o Options) NewClient() *Client {
+	parsedURI, err := url.Parse(o.Config.ServerUri)
 
 	if err != nil {
-		log.Error("Invalid MongoDB URI", logger.AsError(err))
+		o.Logger.Error("Invalid MongoDB URI", logger.AsError(err))
 		panic("Invalid MongoDB URI")
 	}
 
 	if parsedURI.Path == "" || parsedURI.Path == "/" {
-		log.Error("Database not provided in MongoDB URI")
+		o.Logger.Error("Database not provided in MongoDB URI")
 		panic("Database not provided in MongoDB URI")
 	}
 
-	conn, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	conn, err := mongo.Connect(o.Context, options.Client().ApplyURI(o.Config.ServerUri))
 
 	if err != nil {
-		log.Error("Error connecting to mongo", logger.AsError(err))
+		o.Logger.Error("Error connecting to mongo", logger.AsError(err))
 		panic("Error connecting to mongo")
 	}
 
@@ -46,13 +52,15 @@ func InitClient(ctx context.Context, log logger.Logger, uri string) *Client {
 	return &Client{
 		Db:      db,
 		Conn:    conn,
-		Logger:  log,
-		Context: ctx,
+		Options: o,
 	}
 }
 
-func (c *Client) Watch(collections, operations []string) *mongo.ChangeStream {
+func (c *Client) Watch() *mongo.ChangeStream {
 	c.Logger.Info("Starting mongo watcher")
+
+	collections := c.Config.WatchCollections
+	operations := c.Config.WatchOperations
 
 	opts := options.ChangeStream().SetMaxAwaitTime(2 * time.Second)
 	stream, err := c.Db.Watch(c.Context, constructPipeline(collections, operations), opts)

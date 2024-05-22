@@ -10,28 +10,30 @@ import (
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 )
 
-type Server struct {
-	Http    *http.Server
-	Config  *config.Config
-	Logger  logger.Logger
+type Options struct {
 	Context context.Context
+	Logger  logger.Logger
+	Config  *config.HttpConfig
 }
 
-func NewServer(ctx context.Context, log logger.Logger, cfg *config.Config) *Server {
+type Server struct {
+	Http *http.Server
+	Options
+}
+
+func (o Options) NewServer() *Server {
 	httpServer := &http.Server{
-		Addr:        fmt.Sprintf(":%d", cfg.Http.Port),
+		Addr:        fmt.Sprintf(":%d", o.Config.Port),
 		IdleTimeout: time.Minute,
 	}
 
 	return &Server{
 		Http:    httpServer,
-		Config:  cfg,
-		Logger:  log,
-		Context: ctx,
+		Options: o,
 	}
 }
 
-func (s *Server) StartHttp() {
+func (s *Server) Start() {
 	s.Http.Handler = s.registerRoutes()
 
 	go func() {

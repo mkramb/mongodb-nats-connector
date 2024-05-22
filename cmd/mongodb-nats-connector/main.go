@@ -17,26 +17,49 @@ import (
 func main() {
 	ctx, shutdownServer := context.WithCancel(context.Background())
 
+	log := logger.NewLogger()
+	cfg := config.Options{
+		Context: ctx,
+		Logger:  log,
+	}.NewEnvConfig()
+
 	shutdownSignal := make(chan os.Signal, 1)
 	signal.Notify(shutdownSignal, syscall.SIGINT, syscall.SIGTERM)
 
-	log := logger.NewLogger()
-	cfg := config.NewEnvConfig(ctx, log)
+	nats := nats.Options{
+		Context: ctx,
+		Logger:  log,
+		Config:  cfg.Nats,
+	}.NewClient()
 
-	nats := nats.InitClient(ctx, log, cfg.Nats.ServerUrl)
-	mongo := mongo.InitClient(ctx, log, cfg.Mongo.ServerUri)
+	mongo := mongo.Options{
+		Context: ctx,
+		Logger:  log,
+		Config:  cfg.Mongo,
+	}.NewClient()
 
 	defer nats.Close()
 	defer mongo.Close()
 
-	http := http.NewServer(ctx, log, cfg)
-	raft := raft.NewServer(ctx, log, cfg, nats, mongo)
+	http := http.Options{
+		Context: ctx,
+		Logger:  log,
+		Config:  cfg.Http,
+	}.NewServer()
+
+	raft := raft.Options{
+		Context: ctx,
+		Logger:  log,
+		Config:  cfg.Nats,
+		Nats:    nats,
+		Mongo:   mongo,
+	}.NewServer()
 
 	log.Info("Starting http server")
 	log.Info("Starting raft server")
 
-	go http.StartHttp()
-	go raft.StartRaft()
+	go http.Start()
+	go raft.Start()
 
 	<-shutdownSignal
 

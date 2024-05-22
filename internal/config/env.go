@@ -7,6 +7,11 @@ import (
 	"github.com/sethvargo/go-envconfig"
 )
 
+type Options struct {
+	Context context.Context
+	Logger  logger.Logger
+}
+
 type Config struct {
 	Http  *HttpConfig
 	Nats  *NatsConfig
@@ -30,11 +35,11 @@ type MongoConfig struct {
 	WatchOperations  []string `env:"MONGO_WATCH_OPERATIONS, default=insert,update,replace"`
 }
 
-func NewEnvConfig(ctx context.Context, log logger.Logger) *Config {
+func (o Options) NewEnvConfig() *Config {
 	var c Config
 
-	if err := envconfig.Process(ctx, &c); err != nil {
-		log.Error("Error parsing environment values", logger.AsError(err))
+	if err := envconfig.Process(o.Context, &c); err != nil {
+		o.Logger.Error("Error parsing environment values", logger.AsError(err))
 		panic("Error parsing environment values")
 	}
 

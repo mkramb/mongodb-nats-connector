@@ -4,23 +4,28 @@ import (
 	"context"
 	"time"
 
+	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
 
+type Options struct {
+	Context context.Context
+	Logger  logger.Logger
+	Config  *config.NatsConfig
+}
+
 type Client struct {
 	Conn      *nats.Conn
 	JetStream jetstream.JetStream
-	Logger    logger.Logger
-	Context   context.Context
+	Options
 }
 
-func InitClient(ctx context.Context, log logger.Logger, url string) *Client {
+func (o Options) NewClient() *Client {
 	opts := nats.Options{
-		Url:            url,
+		Url:            o.Config.ServerUrl,
 		AllowReconnect: true,
-		MaxReconnect:   -1,
 		ReconnectWait:  5 * time.Second,
 		Timeout:        1 * time.Second,
 	}
@@ -28,7 +33,7 @@ func InitClient(ctx context.Context, log logger.Logger, url string) *Client {
 	conn, err := opts.Connect()
 
 	if err != nil {
-		log.Error("Error connecting to nats", logger.AsError(err))
+		o.Logger.Error("Error connecting to nats", logger.AsError(err))
 		panic("Error connecting to nats")
 	}
 
@@ -37,8 +42,7 @@ func InitClient(ctx context.Context, log logger.Logger, url string) *Client {
 	return &Client{
 		Conn:      conn,
 		JetStream: js,
-		Logger:    log,
-		Context:   ctx,
+		Options:   o,
 	}
 }
 

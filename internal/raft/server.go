@@ -10,29 +10,29 @@ import (
 	"github.com/nats-io/graft"
 )
 
-type Server struct {
-	Nats    *nats.Client
-	Cluster *graft.ClusterInfo
-	Mongo   *mongo.Client
-	Config  *config.Config
-	Logger  logger.Logger
+type Options struct {
 	Context context.Context
+	Logger  logger.Logger
+	Config  *config.NatsConfig
+	Nats    *nats.Client
+	Mongo   *mongo.Client
 }
 
-func NewServer(ctx context.Context, log logger.Logger, cfg *config.Config, nats *nats.Client, mongo *mongo.Client) *Server {
-	cluster := &graft.ClusterInfo{Name: cfg.Nats.ClusterName, Size: cfg.Nats.ClusterSize}
+type Server struct {
+	Cluster *graft.ClusterInfo
+	Options
+}
+
+func (o Options) NewServer() *Server {
+	cluster := &graft.ClusterInfo{Name: o.Config.ClusterName, Size: o.Config.ClusterSize}
 
 	return &Server{
-		Nats:    nats,
 		Cluster: cluster,
-		Mongo:   mongo,
-		Config:  cfg,
-		Logger:  log,
-		Context: ctx,
+		Options: o,
 	}
 }
 
-func (s *Server) StartRaft() {
+func (s *Server) Start() {
 	natsRpc, err := graft.NewNatsRpcFromConn(s.Nats.Conn)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (s *Server) StartRaft() {
 		handler      = graft.NewChanHandler(stateChangeC, errC)
 	)
 
-	node, err := graft.New(*s.Cluster, handler, natsRpc, s.Config.Nats.ClusterName)
+	node, err := graft.New(*s.Cluster, handler, natsRpc, s.Config.ClusterName)
 
 	if err != nil {
 		s.Logger.Error("Error starting new RAFT node", logger.AsError(err))
@@ -65,9 +65,9 @@ func (s *Server) StartRaft() {
 			if change.To == graft.CLOSED {
 				s.Logger.Info("RAFT connection is closed")
 				return
+			} else {
+				s.stateHandler(change.To)
 			}
-
-			s.stateHandler(change.To)
 
 		case err := <-errC:
 			s.Logger.Error("Error processing raft state", logger.AsError(err))

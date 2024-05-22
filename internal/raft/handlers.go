@@ -8,15 +8,12 @@ import (
 var changeStream *mongo.ChangeStream = nil
 
 func (s *Server) stateHandler(stateTo graft.State) {
-	collections := s.Config.Mongo.WatchCollections
-	operations := s.Config.Mongo.WatchOperations
-
 	switch stateTo {
 
 	case graft.LEADER:
 		s.Logger.Info("Becoming leader")
 
-		changeStream = s.Mongo.Watch(collections, operations)
+		changeStream = s.Mongo.Watch()
 		s.Mongo.IterateChangeStream(changeStream, func(data []byte) {
 			s.Logger.Info("Received data", "data", string(data))
 		})
