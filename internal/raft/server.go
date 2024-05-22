@@ -11,11 +11,11 @@ import (
 )
 
 type Options struct {
-	Context context.Context
-	Logger  logger.Logger
-	Config  *config.NatsConfig
-	Nats    *nats.Client
-	Mongo   *mongo.Client
+	Context     context.Context
+	Logger      logger.Logger
+	Config      *config.NatsConfig
+	NatsClient  *nats.Client
+	MongoClient *mongo.Client
 }
 
 type Server struct {
@@ -33,7 +33,7 @@ func (o Options) NewServer() *Server {
 }
 
 func (s *Server) Start() {
-	natsRpc, err := graft.NewNatsRpcFromConn(s.Nats.Conn)
+	natsRpc, err := graft.NewNatsRpcFromConn(s.NatsClient.Conn)
 
 	if err != nil {
 		s.Logger.Error("Error starting RAFT connection", logger.AsError(err))

@@ -26,40 +26,40 @@ func main() {
 	shutdownSignal := make(chan os.Signal, 1)
 	signal.Notify(shutdownSignal, syscall.SIGINT, syscall.SIGTERM)
 
-	nats := nats.Options{
+	natsClient := nats.Options{
 		Context: ctx,
 		Logger:  log,
 		Config:  cfg.Nats,
 	}.NewClient()
 
-	mongo := mongo.Options{
+	mongoClient := mongo.Options{
 		Context: ctx,
 		Logger:  log,
 		Config:  cfg.Mongo,
 	}.NewClient()
 
-	defer nats.Close()
-	defer mongo.Close()
+	defer natsClient.Close()
+	defer mongoClient.Close()
 
-	http := http.Options{
+	httpServer := http.Options{
 		Context: ctx,
 		Logger:  log,
 		Config:  cfg.Http,
 	}.NewServer()
 
-	raft := raft.Options{
-		Context: ctx,
-		Logger:  log,
-		Config:  cfg.Nats,
-		Nats:    nats,
-		Mongo:   mongo,
+	raftServer := raft.Options{
+		Context:     ctx,
+		Logger:      log,
+		Config:      cfg.Nats,
+		NatsClient:  natsClient,
+		MongoClient: mongoClient,
 	}.NewServer()
 
 	log.Info("Starting http server")
 	log.Info("Starting raft server")
 
-	go http.Start()
-	go raft.Start()
+	go httpServer.Start()
+	go raftServer.Start()
 
 	<-shutdownSignal
 

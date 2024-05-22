@@ -13,8 +13,8 @@ func (s *Server) stateHandler(stateTo graft.State) {
 	case graft.LEADER:
 		s.Logger.Info("Becoming leader")
 
-		changeStream = s.Mongo.Watch()
-		s.Mongo.IterateChangeStream(changeStream, func(data []byte) {
+		changeStream = s.MongoClient.Watch()
+		s.MongoClient.IterateChangeStream(changeStream, func(data []byte) {
 			s.Logger.Info("Received data", "data", string(data))
 		})
 
