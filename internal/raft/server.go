@@ -56,7 +56,7 @@ func (s *Server) StartRaft() {
 	defer natsRpc.Close()
 	defer s.Logger.Info("Closing raft connection")
 
-	s.stateHandler(graft.CLOSED, node.State())
+	s.stateHandler(node.State())
 
 	for {
 		select {
@@ -65,9 +65,9 @@ func (s *Server) StartRaft() {
 			if change.To == graft.CLOSED {
 				s.Logger.Info("RAFT connection is closed")
 				return
-			} else {
-				s.stateHandler(change.From, change.To)
 			}
+
+			s.stateHandler(change.To)
 
 		case err := <-errC:
 			s.Logger.Error("Error processing raft state", logger.AsError(err))

@@ -20,13 +20,11 @@ func constructPipeline(collections, operations []string) mongo.Pipeline {
 		namespaces := bson.A{}
 
 		for _, col := range collections {
-			namespaces = append(namespaces, bson.D{{Key: "coll", Value: col}})
+			namespaces = append(namespaces, col)
 		}
 
 		matchStage = append(matchStage, bson.E{Key: "ns.coll", Value: bson.D{{Key: "$in", Value: namespaces}}})
 	}
 
-	pipeline := mongo.Pipeline{bson.D{{Key: "$match", Value: matchStage}}}
-
-	return pipeline
+	return mongo.Pipeline{bson.D{{Key: "$match", Value: matchStage}}}
 }

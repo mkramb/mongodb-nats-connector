@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -16,6 +17,8 @@ type Client struct {
 	Logger  logger.Logger
 	Context context.Context
 }
+
+type ChangeStreamCallback func(data []byte)
 
 func InitClient(ctx context.Context, log logger.Logger, uri string) *Client {
 	parsedURI, err := url.Parse(uri)
@@ -48,7 +51,7 @@ func InitClient(ctx context.Context, log logger.Logger, uri string) *Client {
 	}
 }
 
-func (c *Client) StartWatch(collections, operations []string) *mongo.ChangeStream {
+func (c *Client) Watch(collections, operations []string) *mongo.ChangeStream {
 	c.Logger.Info("Starting mongo watcher")
 
 	opts := options.ChangeStream().SetMaxAwaitTime(2 * time.Second)
@@ -60,6 +63,18 @@ func (c *Client) StartWatch(collections, operations []string) *mongo.ChangeStrea
 	}
 
 	return stream
+}
+
+func (c *Client) IterateChangeStream(changeStream *mongo.ChangeStream, callback ChangeStreamCallback) {
+	for changeStream.Next(c.Context) {
+		data, err := bson.MarshalExtJSON(changeStream.Current, false, false)
+
+		if err != nil {
+			c.Logger.Error("Could not decode mongo change event", logger.AsError(err))
+		}
+
+		callback(data)
+	}
 }
 
 func (c *Client) Close() {

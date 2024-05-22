@@ -17,13 +17,13 @@ import (
 func main() {
 	ctx, shutdownServer := context.WithCancel(context.Background())
 
-	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
+	shutdownSignal := make(chan os.Signal, 1)
+	signal.Notify(shutdownSignal, syscall.SIGINT, syscall.SIGTERM)
 
 	log := logger.NewLogger()
 	cfg := config.NewEnvConfig(ctx, log)
 
-	nats := nats.InitClient(log, cfg.Nats.ServerUrl)
+	nats := nats.InitClient(ctx, log, cfg.Nats.ServerUrl)
 	mongo := mongo.InitClient(ctx, log, cfg.Mongo.ServerUri)
 
 	defer nats.Close()
@@ -38,9 +38,8 @@ func main() {
 	go http.StartHttp()
 	go raft.StartRaft()
 
-	<-shutdown
+	<-shutdownSignal
 
 	log.Info("Received shutdown signal")
-
 	shutdownServer()
 }
