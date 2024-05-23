@@ -81,9 +81,9 @@ func (c *Client) IterateChangeStream(changeStream *mongo.ChangeStream, callback 
 
 		if err := changeStream.Decode(&changeEvent); err != nil {
 			c.Logger.Error("Could not decode mongo change event", logger.AsError(err))
+		} else {
+			callback(changeEvent)
 		}
-
-		callback(changeEvent)
 	}
 }
 
