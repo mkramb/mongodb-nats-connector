@@ -30,13 +30,13 @@ func (o Options) New() *Client {
 	parsedURI, err := url.Parse(o.Config.ServerUri)
 
 	if err != nil {
-		o.Logger.Error("Invalid MongoDB URI", logger.AsError(err))
-		panic("Invalid MongoDB URI")
+		o.Logger.Error("Invalid mongo URI", logger.AsError(err))
+		panic("Invalid mongo URI")
 	}
 
 	if parsedURI.Path == "" || parsedURI.Path == "/" {
-		o.Logger.Error("Database not provided in MongoDB URI")
-		panic("Database not provided in MongoDB URI")
+		o.Logger.Error("Database not provided in URI")
+		panic("Database not provided URI")
 	}
 
 	conn, err := mongo.Connect(o.Context, options.Client().ApplyURI(o.Config.ServerUri))
@@ -48,6 +48,8 @@ func (o Options) New() *Client {
 
 	database := parsedURI.Path[1:]
 	db := conn.Database(database)
+
+	o.Logger.Info("Connected to Mongo")
 
 	return &Client{
 		Db:      db,

@@ -16,6 +16,7 @@ type Config struct {
 	Http  *HttpConfig
 	Nats  *NatsConfig
 	Mongo *MongoConfig
+	Raft  *RaftConfig
 }
 
 type HttpConfig struct {
@@ -23,10 +24,13 @@ type HttpConfig struct {
 }
 
 type NatsConfig struct {
-	ServerUrl   string `env:"NATS_SERVER_URL, required"`
-	ClusterSize int    `env:"NATS_CLUSTER_SIZE, default=3"`
-	ClusterName string `env:"NATS_CLUSTER_NAME, default=connector"`
-	LogPath     string `env:"NATS_LOG_PATH, default=/tmp/graft.log"`
+	ServerUrl string `env:"NATS_SERVER_URL, required"`
+}
+
+type RaftConfig struct {
+	ClusterSize int    `env:"RAFT_CLUSTER_SIZE, default=3"`
+	ClusterName string `env:"RAFT_CLUSTER_NAME, default=connector"`
+	LogPath     string `env:"RAFT_LOG_PATH, default=/tmp/graft.log"`
 }
 
 type MongoConfig struct {

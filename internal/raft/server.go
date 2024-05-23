@@ -13,7 +13,7 @@ import (
 type Options struct {
 	Context     context.Context
 	Logger      logger.Logger
-	Config      *config.NatsConfig
+	Config      *config.RaftConfig
 	NatsClient  *nats.Client
 	MongoClient *mongo.Client
 }
@@ -33,10 +33,10 @@ func (o Options) New() *Server {
 }
 
 func (s *Server) Start() {
-	natsRpc, err := graft.NewNatsRpcFromConn(s.NatsClient.Conn)
+	rpc, err := graft.NewNatsRpcFromConn(s.NatsClient.Conn)
 
 	if err != nil {
-		s.Logger.Error("Error starting RAFT connection", logger.AsError(err))
+		s.Logger.Error("Error starting raft connection", logger.AsError(err))
 		return
 	}
 
@@ -46,15 +46,15 @@ func (s *Server) Start() {
 		handler      = graft.NewChanHandler(stateChangeC, errC)
 	)
 
-	node, err := graft.New(*s.Cluster, handler, natsRpc, s.Config.ClusterName)
+	node, err := graft.New(*s.Cluster, handler, rpc, s.Config.ClusterName)
 
 	if err != nil {
-		s.Logger.Error("Error starting new RAFT node", logger.AsError(err))
+		s.Logger.Error("Error starting new raft node", logger.AsError(err))
 	}
 
-	defer node.Close()
-	defer natsRpc.Close()
 	defer s.Logger.Info("Closing raft connection")
+	defer node.Close()
+	defer rpc.Close()
 
 	s.stateHandler(node.State())
 

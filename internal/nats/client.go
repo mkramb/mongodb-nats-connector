@@ -24,10 +24,10 @@ type Client struct {
 
 func (o Options) New() *Client {
 	opts := nats.Options{
-		Url:            o.Config.ServerUrl,
 		AllowReconnect: true,
 		ReconnectWait:  5 * time.Second,
 		Timeout:        1 * time.Second,
+		Url:            o.Config.ServerUrl,
 	}
 
 	conn, err := opts.Connect()
@@ -38,6 +38,8 @@ func (o Options) New() *Client {
 	}
 
 	js, _ := jetstream.New(conn)
+
+	o.Logger.Info("Connected to Nats")
 
 	return &Client{
 		Conn:      conn,

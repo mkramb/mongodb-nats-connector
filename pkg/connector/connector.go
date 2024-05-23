@@ -68,7 +68,7 @@ func (c *Connector) StartRaft() {
 	raftServer := raft.Options{
 		Context:     c.Context,
 		Logger:      c.Logger,
-		Config:      c.Config.Nats,
+		Config:      c.Config.Raft,
 		NatsClient:  c.NatsClient,
 		MongoClient: c.MongoClient,
 	}.New()
