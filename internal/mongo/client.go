@@ -26,7 +26,7 @@ type Client struct {
 
 type ChangeStreamCallback func(data []byte)
 
-func (o Options) NewClient() *Client {
+func (o Options) New() *Client {
 	parsedURI, err := url.Parse(o.Config.ServerUri)
 
 	if err != nil {

@@ -22,7 +22,7 @@ type Client struct {
 	Options
 }
 
-func (o Options) NewClient() *Client {
+func (o Options) New() *Client {
 	opts := nats.Options{
 		Url:            o.Config.ServerUrl,
 		AllowReconnect: true,

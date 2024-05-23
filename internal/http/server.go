@@ -21,7 +21,7 @@ type Server struct {
 	Options
 }
 
-func (o Options) NewServer() *Server {
+func (o Options) New() *Server {
 	httpServer := &http.Server{
 		Addr:        fmt.Sprintf(":%d", o.Config.Port),
 		IdleTimeout: time.Minute,

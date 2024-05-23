@@ -23,7 +23,7 @@ type Server struct {
 	Options
 }
 
-func (o Options) NewServer() *Server {
+func (o Options) New() *Server {
 	cluster := &graft.ClusterInfo{Name: o.Config.ClusterName, Size: o.Config.ClusterSize}
 
 	return &Server{

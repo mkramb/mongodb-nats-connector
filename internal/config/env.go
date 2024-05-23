@@ -35,7 +35,7 @@ type MongoConfig struct {
 	WatchOperations  []string `env:"MONGO_WATCH_OPERATIONS, default=insert,update,replace"`
 }
 
-func (o Options) NewEnvConfig() *Config {
+func (o Options) New() *Config {
 	var c Config
 
 	if err := envconfig.Process(o.Context, &c); err != nil {
