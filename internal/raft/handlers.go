@@ -2,6 +2,7 @@ package raft
 
 import (
 	"github.com/nats-io/graft"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -14,8 +15,8 @@ func (s *Server) stateHandler(stateTo graft.State) {
 		s.Logger.Info("Becoming leader")
 
 		changeStream = s.MongoClient.Watch()
-		s.MongoClient.IterateChangeStream(changeStream, func(data []byte) {
-			s.Logger.Info("Received data", "data", string(data))
+		s.MongoClient.IterateChangeStream(changeStream, func(changeEvent bson.M) {
+			s.Logger.Info("Received data", "fullDocument", changeEvent["fullDocument"])
 		})
 
 	default:

@@ -46,7 +46,7 @@ func (s *Server) Start() {
 		handler      = graft.NewChanHandler(stateChangeC, errC)
 	)
 
-	node, err := graft.New(*s.Cluster, handler, rpc, s.Config.ClusterName)
+	node, err := graft.New(*s.Cluster, handler, rpc, s.Config.LogPath)
 
 	if err != nil {
 		s.Logger.Error("Error starting new raft node", logger.AsError(err))

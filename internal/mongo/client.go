@@ -24,7 +24,7 @@ type Client struct {
 	Options
 }
 
-type ChangeStreamCallback func(data []byte)
+type ChangeStreamCallback func(changeEvent bson.M)
 
 func (o Options) New() *Client {
 	parsedURI, err := url.Parse(o.Config.ServerUri)
@@ -64,7 +64,7 @@ func (c *Client) Watch() *mongo.ChangeStream {
 	collections := c.Config.WatchCollections
 	operations := c.Config.WatchOperations
 
-	opts := options.ChangeStream().SetMaxAwaitTime(2 * time.Second)
+	opts := options.ChangeStream().SetMaxAwaitTime(2 * time.Second).SetFullDocument(options.UpdateLookup)
 	stream, err := c.Db.Watch(c.Context, constructPipeline(collections, operations), opts)
 
 	if err != nil {
@@ -77,13 +77,13 @@ func (c *Client) Watch() *mongo.ChangeStream {
 
 func (c *Client) IterateChangeStream(changeStream *mongo.ChangeStream, callback ChangeStreamCallback) {
 	for changeStream.Next(c.Context) {
-		data, err := bson.MarshalExtJSON(changeStream.Current, false, false)
+		var changeEvent bson.M
 
-		if err != nil {
+		if err := changeStream.Decode(&changeEvent); err != nil {
 			c.Logger.Error("Could not decode mongo change event", logger.AsError(err))
 		}
 
-		callback(data)
+		callback(changeEvent)
 	}
 }
 
