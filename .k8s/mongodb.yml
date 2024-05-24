@@ -3,15 +3,15 @@ kind: StatefulSet
 metadata:
   name: mongodb
 spec:
-  serviceName: mongo
+  serviceName: mongodb
   replicas: 1
   selector:
     matchLabels:
-      app: mongo
+      app: mongodb
   template:
     metadata:
       labels:
-        app: mongo
+        app: mongodb
         selector: mongodb
     spec:
       volumes:
@@ -41,13 +41,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo
+  name: mongodb
   labels:
-    app: mongo
+    app: mongodb
 spec:
   clusterIP: None
   selector:
-    app: mongo
+    app: mongodb
   ports:
     - protocol: TCP
       port: 27017
