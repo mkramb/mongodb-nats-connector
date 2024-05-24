@@ -9,6 +9,7 @@ Lets start three separate connector instances (in separate terminals):
 export MONGO_URI="mongodb://localhost:27017/test?replicaSet=tilt&directConnection=true"
 export MONGO_WATCH_COLLECTIONS="users,movies"
 export NATS_SERVER_URL=nats://127.0.0.1:4222
+export NATS_STREAM_NAME=css
 
 HTTP_PORT=3000 ./mongodb-nats-connector
 HTTP_PORT=3001 ./mongodb-nats-connector
