@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"time"
 
@@ -10,7 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
+
+var ErrClientDisconnected = errors.New("could not reach mongodb: connection closed")
 
 type Options struct {
 	Context context.Context
@@ -85,6 +89,14 @@ func (c *Client) IterateChangeStream(changeStream *mongo.ChangeStream, callback 
 			callback(json)
 		}
 	}
+}
+
+func (c *Client) Monitor() error {
+	if err := c.Conn.Ping(c.Context, readpref.Primary()); err != nil {
+		return ErrClientDisconnected
+	}
+
+	return nil
 }
 
 func (c *Client) Close() {

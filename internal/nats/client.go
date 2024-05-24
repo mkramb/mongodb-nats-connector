@@ -2,6 +2,7 @@ package nats
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
+
+var ErrClientDisconnected = errors.New("could not reach nats: connection closed")
 
 type Options struct {
 	Context context.Context
@@ -67,6 +70,14 @@ func (c *Client) PublishEvent(opts *PublishOptions) {
 		c.Logger.Error("Could not publish nats message",
 			"data", opts.Data, "subject", opts.Subject, logger.AsError(err))
 	}
+}
+
+func (c *Client) Monitor() error {
+	if closed := c.Conn.IsClosed(); closed {
+		return ErrClientDisconnected
+	}
+
+	return nil
 }
 
 func (c *Client) Close() {

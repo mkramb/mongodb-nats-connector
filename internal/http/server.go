@@ -10,6 +10,13 @@ import (
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 )
 
+type HealthMonitor func() error
+
+type HealthCheck struct {
+	name    string
+	monitor HealthMonitor
+}
+
 type Options struct {
 	Context context.Context
 	Logger  logger.Logger
@@ -17,7 +24,8 @@ type Options struct {
 }
 
 type Server struct {
-	Http *http.Server
+	Http        *http.Server
+	HeathChecks []HealthCheck
 	Options
 }
 
@@ -28,9 +36,17 @@ func (o Options) New() *Server {
 	}
 
 	return &Server{
-		Http:    httpServer,
-		Options: o,
+		Http:        httpServer,
+		HeathChecks: make([]HealthCheck, 0),
+		Options:     o,
 	}
+}
+
+func (s *Server) RegisterHealthCheck(name string, monitor HealthMonitor) {
+	s.HeathChecks = append(s.HeathChecks, HealthCheck{
+		name:    name,
+		monitor: monitor,
+	})
 }
 
 func (s *Server) Start() {

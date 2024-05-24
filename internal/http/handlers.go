@@ -3,8 +3,13 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+)
 
-	"github.com/mkramb/mongodb-nats-connector/internal/logger"
+type health string
+
+const (
+	UP   health = "UP"
+	DOWN health = "DOWN"
 )
 
 func (s *Server) registerRoutes() http.Handler {
@@ -15,13 +20,28 @@ func (s *Server) registerRoutes() http.Handler {
 }
 
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
-	jsonResp, err := json.Marshal(map[string]string{
-		"message": "It's healthy",
-	})
+	response := make(map[string]health)
+	statusCode := http.StatusOK
 
-	if err != nil {
-		s.Logger.Error("Error handling JSON marshal", logger.AsError(err))
+	for _, healthCheck := range s.HeathChecks {
+		if err := healthCheck.monitor(); err == nil {
+			response[healthCheck.name] = UP
+		} else {
+			response[healthCheck.name] = DOWN
+			statusCode = http.StatusServiceUnavailable
+		}
 	}
 
-	_, _ = w.Write(jsonResp)
+	if statusCode != http.StatusOK {
+		s.Logger.Warn("Registered health checks are failing")
+	}
+
+	writeJson(w, statusCode, response)
+}
+
+func writeJson(writer http.ResponseWriter, code int, response any) {
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(code)
+
+	_ = json.NewEncoder(writer).Encode(response)
 }

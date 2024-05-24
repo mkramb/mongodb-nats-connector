@@ -59,6 +59,9 @@ func (c *Connector) StartHttp() {
 		Config:  c.Config.Http,
 	}.New()
 
+	httpServer.RegisterHealthCheck("nats", c.NatsClient.Monitor)
+	httpServer.RegisterHealthCheck("mongo", c.MongoClient.Monitor)
+
 	go httpServer.Start()
 }
 
