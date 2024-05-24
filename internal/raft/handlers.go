@@ -17,7 +17,8 @@ func (s *Server) stateHandler(stateTo graft.State) {
 	case graft.LEADER:
 		s.Logger.Info("Becoming leader")
 
-		changeStream = s.MongoClient.Watch()
+		changeStream = s.MongoClient.StartWatch()
+
 		s.MongoClient.IterateChangeStream(changeStream, func(json []byte) {
 			event, err := mongo.DecodeChangeEvent(json)
 
@@ -30,12 +31,14 @@ func (s *Server) stateHandler(stateTo graft.State) {
 				opts.Subject = fmt.Sprintf("%v.%v.%v", event.Ns.Coll, event.OperationType, event.FullDocument.Id.Value)
 				opts.Data = json
 
-				s.NatsClient.Publish(&opts)
+				s.NatsClient.PublishEvent(&opts)
 			}
 		})
 
 	default:
 		if changeStream != nil {
+			s.Logger.Info("Closing mongo watcher")
+
 			changeStream.Close(s.Context)
 			changeStream = nil
 		}

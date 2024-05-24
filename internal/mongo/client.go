@@ -58,7 +58,7 @@ func (o Options) New() *Client {
 	}
 }
 
-func (c *Client) Watch() *mongo.ChangeStream {
+func (c *Client) StartWatch() *mongo.ChangeStream {
 	c.Logger.Info("Starting mongo watcher")
 
 	collections := c.Config.WatchCollections

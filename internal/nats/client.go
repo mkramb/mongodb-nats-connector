@@ -55,7 +55,7 @@ func (o Options) New() *Client {
 	}
 }
 
-func (c *Client) Publish(opts *PublishOptions) {
+func (c *Client) PublishEvent(opts *PublishOptions) {
 	c.Logger.Info("Emitting event to nats jetstream", "subject", opts.Subject)
 
 	_, err := c.JetStream.PublishMsg(c.Context, &nats.Msg{
