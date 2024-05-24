@@ -31,7 +31,7 @@ type NatsConfig struct {
 type RaftConfig struct {
 	ClusterSize int    `env:"RAFT_CLUSTER_SIZE, default=3"`
 	ClusterName string `env:"RAFT_CLUSTER_NAME, default=connector"`
-	LogPath     string `env:"RAFT_LOG_PATH, default=/tmp/graft.log"`
+	LogPath     string `env:"RAFT_LOG_PATH, default=./graft.log"`
 }
 
 type MongoConfig struct {
