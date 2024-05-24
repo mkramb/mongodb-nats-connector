@@ -18,9 +18,18 @@ k8s_resource("nats", port_forwards=["4222:4222"])
 k8s_resource("mongodb", port_forwards=["27017:27017"])
 
 local_resource(
-    'db-reset',
-    cmd='.scripts/db_reset.sh',
+    'init-nats',
+    cmd='.scripts/init_nats.sh',
+    resource_deps=['nats'],
+    labels=["scripts"],
+    auto_init=True
+)
+
+local_resource(
+    'init-mongo',
+    cmd='.scripts/init_mongo.sh',
     resource_deps=['mongodb'],
+    labels=["scripts"],
     auto_init=True
 )
 
@@ -28,7 +37,12 @@ if not only_infra:
     k8s_yaml(".k8s/mongodb-nats-connector.yml")
     k8s_resource(
         'mongodb-nats-connector',
-        resource_deps=['nats','mongodb','db-reset']
+        resource_deps=[
+            'nats',
+            'mongodb',
+            'init-nats',
+            'init-mongo'
+        ]
     )
 
     docker_build(

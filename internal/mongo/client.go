@@ -24,7 +24,7 @@ type Client struct {
 	Options
 }
 
-type ChangeStreamCallback func(changeEvent bson.M)
+type ChangeStreamCallback func(json []byte)
 
 func (o Options) New() *Client {
 	parsedURI, err := url.Parse(o.Config.ServerUri)
@@ -77,12 +77,12 @@ func (c *Client) Watch() *mongo.ChangeStream {
 
 func (c *Client) IterateChangeStream(changeStream *mongo.ChangeStream, callback ChangeStreamCallback) {
 	for changeStream.Next(c.Context) {
-		var changeEvent bson.M
+		json, err := bson.MarshalExtJSON(changeStream.Current, false, false)
 
-		if err := changeStream.Decode(&changeEvent); err != nil {
-			c.Logger.Error("Could not decode mongo change event", logger.AsError(err))
+		if err != nil {
+			c.Logger.Error("Could not marshal change event from bson", logger.AsError(err))
 		} else {
-			callback(changeEvent)
+			callback(json)
 		}
 	}
 }

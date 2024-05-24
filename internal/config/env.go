@@ -24,7 +24,8 @@ type HttpConfig struct {
 }
 
 type NatsConfig struct {
-	ServerUrl string `env:"NATS_SERVER_URL, required"`
+	ServerUrl  string `env:"NATS_SERVER_URL, required"`
+	StreamName string `env:"NATS_STREAM_NAME, default=cs"`
 }
 
 type RaftConfig struct {

@@ -1,12 +1,15 @@
 package raft
 
 import (
+	"fmt"
+
+	"github.com/mkramb/mongodb-nats-connector/internal/mongo"
+	"github.com/mkramb/mongodb-nats-connector/internal/nats"
 	"github.com/nats-io/graft"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	_mongo "go.mongodb.org/mongo-driver/mongo"
 )
 
-var changeStream *mongo.ChangeStream = nil
+var changeStream *_mongo.ChangeStream = nil
 
 func (s *Server) stateHandler(stateTo graft.State) {
 	switch stateTo {
@@ -15,8 +18,20 @@ func (s *Server) stateHandler(stateTo graft.State) {
 		s.Logger.Info("Becoming leader")
 
 		changeStream = s.MongoClient.Watch()
-		s.MongoClient.IterateChangeStream(changeStream, func(changeEvent bson.M) {
-			s.Logger.Info("Received data", "fullDocument", changeEvent["fullDocument"])
+		s.MongoClient.IterateChangeStream(changeStream, func(json []byte) {
+			event, err := mongo.DecodeChangeEvent(json)
+
+			if err != nil {
+				s.Logger.Error("Unable to decode received change event", "data", string(json))
+			} else {
+				var opts nats.PublishOptions
+
+				opts.MsgId = event.ResumeToken.Value
+				opts.Subject = fmt.Sprintf("%v.%v.%v", event.Ns.Coll, event.OperationType, event.FullDocument.Id.Value)
+				opts.Data = json
+
+				s.NatsClient.Publish(&opts)
+			}
 		})
 
 	default:

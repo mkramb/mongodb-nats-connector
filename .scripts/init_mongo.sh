@@ -21,4 +21,4 @@ create_database "test" "movies"
 insert_sample_data "test" "users" '{"name": "John Doe", "email": "john.doe@example.com"}'
 insert_sample_data "test" "movies" '{"title": "Inception", "year": 2010, "genre": "Sci-Fi"}'
 
-echo "Databases and collections created successfully."
+echo "Databases and collections created successfully"

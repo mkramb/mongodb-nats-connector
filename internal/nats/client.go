@@ -2,6 +2,7 @@ package nats
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
@@ -20,6 +21,12 @@ type Client struct {
 	Conn      *nats.Conn
 	JetStream jetstream.JetStream
 	Options
+}
+
+type PublishOptions struct {
+	MsgId   string
+	Subject string
+	Data    []byte
 }
 
 func (o Options) New() *Client {
@@ -45,6 +52,20 @@ func (o Options) New() *Client {
 		Conn:      conn,
 		JetStream: js,
 		Options:   o,
+	}
+}
+
+func (c *Client) Publish(opts *PublishOptions) {
+	c.Logger.Info("Emitting event to nats jetstream", "subject", opts.Subject)
+
+	_, err := c.JetStream.PublishMsg(c.Context, &nats.Msg{
+		Subject: fmt.Sprintf("%v.%v", c.Config.StreamName, opts.Subject),
+		Data:    opts.Data,
+	}, jetstream.WithMsgID(opts.MsgId))
+
+	if err != nil {
+		c.Logger.Error("Could not publish nats message",
+			"data", opts.Data, "subject", opts.Subject, logger.AsError(err))
 	}
 }
 
