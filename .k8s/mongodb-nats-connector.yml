@@ -25,6 +25,8 @@ spec:
               value: "users,movies"
             - name: NATS_SERVER_URL
               value: "nats://nats:4222"
+            - name: NATS_STREAM_NAME
+              value: "cs"
           livenessProbe:
             httpGet:
               path: /health

@@ -9,7 +9,7 @@ COPY ./internal ./internal
 COPY ./pkg ./pkg
 COPY ./cmd ./cmd
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o mongodb-nats-connector ./cmd/connector/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -o mongodb-nats-connector ./cmd/connector/main.go
 CMD ./mongodb-nats-connector
 
 FROM scratch

@@ -32,60 +32,19 @@ func (o Options) New() *Server {
 	}
 }
 
-func (s *Server) StartRaft() {
-	rpc, err := graft.NewNatsRpcFromConn(s.NatsClient.Conn)
-
-	if err != nil {
-		s.Logger.Error("Error starting raft connection", logger.AsError(err))
-		return
-	}
-
-	var (
-		errC         = make(chan error)
-		stateChangeC = make(chan graft.StateChange)
-		handler      = graft.NewChanHandler(stateChangeC, errC)
-	)
-
-	node, err := graft.New(*s.Cluster, handler, rpc, s.Config.LogPath)
-
-	if err != nil {
-		s.Logger.Error("Error starting new raft node", logger.AsError(err))
-	}
-
-	defer s.Logger.Info("Closing watcher server")
-	defer node.Close()
-	defer rpc.Close()
-
-	s.stateHandler(node.State())
-
-	for {
-		select {
-
-		case change := <-stateChangeC:
-			if change.To == graft.CLOSED {
-				s.Logger.Info("RAFT connection is closed")
-				return
-			} else {
-				s.stateHandler(change.To)
-			}
-
-		case err := <-errC:
-			s.Logger.Error("Error processing raft state", logger.AsError(err))
-			return
-
-		case <-s.Context.Done():
-			return
-		}
-	}
-}
-
 func (s *Server) Start() {
-	go func() {
-		s.startWatching()
-	}()
+	if s.Config.ClusterSize > 1 {
+		s.StartRaft()
+	} else {
+		s.Logger.Info("Running watcher as a single instance, disabling raft")
 
-	defer s.Logger.Info("Closing watcher server")
-	defer s.MongoClient.StopWatcher()
+		go func() {
+			s.watchForChangeEvents()
+		}()
 
-	<-s.Context.Done()
+		defer s.Logger.Info("Closing watcher server")
+		defer s.MongoClient.StopWatcher()
+
+		<-s.Context.Done()
+	}
 }

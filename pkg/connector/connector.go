@@ -76,11 +76,5 @@ func (c *Connector) StartWatcher() {
 		MongoClient: c.MongoClient,
 	}.New()
 
-	if c.Config.Raft.ClusterSize > 1 {
-		c.Logger.Info("Starting watcher server using raft")
-		go watcherServer.StartRaft()
-	} else {
-		c.Logger.Info("Starting watcher server")
-		go watcherServer.Start()
-	}
+	go watcherServer.Start()
 }
