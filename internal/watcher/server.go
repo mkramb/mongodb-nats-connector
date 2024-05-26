@@ -44,15 +44,14 @@ func (s *Server) Start() {
 		}()
 
 		defer s.Logger.Info("Closing watcher server")
-		defer s.MongoClient.StopWatcher()
+		defer s.MongoClient.StopChangeStream()
 
 		<-s.Context.Done()
 	}
 }
 
 func (s *Server) watchForChangeEvents() {
-	s.MongoClient.StartWatcher()
-	s.MongoClient.OnChangeEvent(func(event *mongo.ChangeEvent, json []byte) {
+	s.MongoClient.StartChangeStream(func(event *mongo.ChangeEvent, json []byte) {
 		var opts nats.PublishOptions
 
 		opts.MsgId = event.ResumeToken.Value

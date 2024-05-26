@@ -4,17 +4,15 @@ import (
 	"context"
 	"errors"
 	"net/url"
-	"time"
 
 	"github.com/mkramb/mongodb-nats-connector/internal/config"
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var changeStream *mongo.ChangeStream = nil
+var ErrClientDisconnected = errors.New("could not reach mongodb: connection closed")
 
 type Options struct {
 	Context context.Context
@@ -27,8 +25,6 @@ type Client struct {
 	Conn *mongo.Client
 	Options
 }
-
-type ChangeStreamCallback func(event *ChangeEvent, json []byte)
 
 func (o Options) New() *Client {
 	parsedURI, err := url.Parse(o.Config.ServerUri)
@@ -62,53 +58,9 @@ func (o Options) New() *Client {
 	}
 }
 
-func (c *Client) StartWatcher() {
-	c.Logger.Info("Starting mongo watcher")
-
-	collections := c.Config.WatchCollections
-	operations := c.Config.WatchOperations
-
-	opts := options.ChangeStream().SetMaxAwaitTime(2 * time.Second).SetFullDocument(options.UpdateLookup)
-	stream, err := c.Db.Watch(c.Context, constructPipeline(collections, operations), opts)
-
-	if err != nil {
-		c.Logger.Error("Error starting mongo change stream", logger.AsError(err))
-		panic("Error starting mongo change stream")
-	}
-
-	changeStream = stream
-}
-
-func (c *Client) StopWatcher() {
-	if changeStream != nil {
-		c.Logger.Info("Closing mongo watcher")
-
-		changeStream.Close(c.Context)
-		changeStream = nil
-	}
-}
-
-func (c *Client) OnChangeEvent(callback ChangeStreamCallback) {
-	for changeStream.Next(c.Context) {
-		json, err := bson.MarshalExtJSON(changeStream.Current, false, false)
-
-		if err != nil {
-			c.Logger.Error("Could not marshal change event to json", logger.AsError(err))
-		}
-
-		event, err := DecodeChangeEvent(json)
-
-		if err != nil {
-			c.Logger.Error("Unable to decode received change event", "data", string(json))
-		}
-
-		callback(event, json)
-	}
-}
-
 func (c *Client) Monitor() error {
 	if err := c.Conn.Ping(c.Context, readpref.Primary()); err != nil {
-		return errors.New("could not reach mongodb: connection closed")
+		return ErrClientDisconnected
 	}
 
 	return nil

@@ -35,9 +35,10 @@ type RaftConfig struct {
 }
 
 type MongoConfig struct {
-	ServerUri        string   `env:"MONGO_URI, required"`
-	WatchCollections []string `env:"MONGO_WATCH_COLLECTIONS, required"`
-	WatchOperations  []string `env:"MONGO_WATCH_OPERATIONS, default=insert,update,replace"`
+	ServerUri              string   `env:"MONGO_URI, required"`
+	WatchCollections       []string `env:"MONGO_WATCH_COLLECTIONS, required"`
+	WatchOperations        []string `env:"MONGO_WATCH_OPERATIONS, default=insert,update,replace"`
+	ResumeTokensCollection string   `env:"MONGO_RESUME_TOKENS_COLLECTION, default=cs_resume_tokens"`
 }
 
 func (o Options) New() *Config {

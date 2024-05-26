@@ -61,6 +61,6 @@ func (s *Server) stateHandler(stateTo graft.State) {
 
 	default:
 		s.Logger.Info("Becoming follower")
-		s.MongoClient.StopWatcher()
+		s.MongoClient.StopChangeStream()
 	}
 }
