@@ -44,23 +44,14 @@ Setting up local cluster:
 .scripts/cluster_create.sh
 ```
 
-Running scripts:
-
-```
-task compile
-task execute
-```
-
-Running services:
+Running locally:
 
 ```
 tilt up
 tilt down
 ```
 
-## Tips
-
-Only start Nats / Mongo server:
+To only start Nats / Mongo server:
 
 ```
 tilt up -- --only-infra
