@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var ErrClientDisconnected = errors.New("could not reach mongodb: connection closed")
+var changeStream *mongo.ChangeStream = nil
 
 type Options struct {
 	Context context.Context
@@ -28,7 +28,7 @@ type Client struct {
 	Options
 }
 
-type ChangeStreamCallback func(json []byte)
+type ChangeStreamCallback func(event *ChangeEvent, json []byte)
 
 func (o Options) New() *Client {
 	parsedURI, err := url.Parse(o.Config.ServerUri)
@@ -62,7 +62,7 @@ func (o Options) New() *Client {
 	}
 }
 
-func (c *Client) StartWatch() *mongo.ChangeStream {
+func (c *Client) StartWatcher() {
 	c.Logger.Info("Starting mongo watcher")
 
 	collections := c.Config.WatchCollections
@@ -76,24 +76,39 @@ func (c *Client) StartWatch() *mongo.ChangeStream {
 		panic("Error starting mongo change stream")
 	}
 
-	return stream
+	changeStream = stream
 }
 
-func (c *Client) IterateChangeStream(changeStream *mongo.ChangeStream, callback ChangeStreamCallback) {
+func (c *Client) StopWatcher() {
+	if changeStream != nil {
+		c.Logger.Info("Closing mongo watcher")
+
+		changeStream.Close(c.Context)
+		changeStream = nil
+	}
+}
+
+func (c *Client) OnChangeEvent(callback ChangeStreamCallback) {
 	for changeStream.Next(c.Context) {
 		json, err := bson.MarshalExtJSON(changeStream.Current, false, false)
 
 		if err != nil {
-			c.Logger.Error("Could not marshal change event from bson", logger.AsError(err))
-		} else {
-			callback(json)
+			c.Logger.Error("Could not marshal change event to json", logger.AsError(err))
 		}
+
+		event, err := DecodeChangeEvent(json)
+
+		if err != nil {
+			c.Logger.Error("Unable to decode received change event", "data", string(json))
+		}
+
+		callback(event, json)
 	}
 }
 
 func (c *Client) Monitor() error {
 	if err := c.Conn.Ping(c.Context, readpref.Primary()); err != nil {
-		return ErrClientDisconnected
+		return errors.New("could not reach mongodb: connection closed")
 	}
 
 	return nil

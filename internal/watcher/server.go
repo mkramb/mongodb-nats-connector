@@ -1,4 +1,4 @@
-package raft
+package watcher
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func (o Options) New() *Server {
 	}
 }
 
-func (s *Server) Start() {
+func (s *Server) StartRaft() {
 	rpc, err := graft.NewNatsRpcFromConn(s.NatsClient.Conn)
 
 	if err != nil {
@@ -52,7 +52,7 @@ func (s *Server) Start() {
 		s.Logger.Error("Error starting new raft node", logger.AsError(err))
 	}
 
-	defer s.Logger.Info("Closing raft connection")
+	defer s.Logger.Info("Closing watcher server")
 	defer node.Close()
 	defer rpc.Close()
 
@@ -77,4 +77,15 @@ func (s *Server) Start() {
 			return
 		}
 	}
+}
+
+func (s *Server) Start() {
+	go func() {
+		s.startWatching()
+	}()
+
+	defer s.Logger.Info("Closing watcher server")
+	defer s.MongoClient.StopWatcher()
+
+	<-s.Context.Done()
 }

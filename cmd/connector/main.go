@@ -30,7 +30,7 @@ func main() {
 	}.New()
 
 	connector.StartHttp()
-	connector.StartRaft()
+	connector.StartWatcher()
 
 	<-shutdownSignal
 

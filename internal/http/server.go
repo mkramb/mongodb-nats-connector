@@ -58,8 +58,8 @@ func (s *Server) Start() {
 		}
 	}()
 
-	defer s.Http.Shutdown(s.Context)
 	defer s.Logger.Info("Closing http client")
+	defer s.Http.Shutdown(s.Context)
 
 	<-s.Context.Done()
 }

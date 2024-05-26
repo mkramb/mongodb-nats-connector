@@ -12,8 +12,6 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-var ErrClientDisconnected = errors.New("could not reach nats: connection closed")
-
 type Options struct {
 	Context context.Context
 	Logger  logger.Logger
@@ -74,7 +72,7 @@ func (c *Client) PublishEvent(opts *PublishOptions) {
 
 func (c *Client) Monitor() error {
 	if closed := c.Conn.IsClosed(); closed {
-		return ErrClientDisconnected
+		return errors.New("could not reach nats: connection closed")
 	}
 
 	return nil

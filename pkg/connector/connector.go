@@ -8,7 +8,7 @@ import (
 	"github.com/mkramb/mongodb-nats-connector/internal/logger"
 	"github.com/mkramb/mongodb-nats-connector/internal/mongo"
 	"github.com/mkramb/mongodb-nats-connector/internal/nats"
-	"github.com/mkramb/mongodb-nats-connector/internal/raft"
+	"github.com/mkramb/mongodb-nats-connector/internal/watcher"
 )
 
 type Options struct {
@@ -65,10 +65,10 @@ func (c *Connector) StartHttp() {
 	go httpServer.Start()
 }
 
-func (c *Connector) StartRaft() {
-	c.Logger.Info("Starting raft server")
+func (c *Connector) StartWatcher() {
+	c.Logger.Info("Starting watcher server")
 
-	raftServer := raft.Options{
+	watcherServer := watcher.Options{
 		Context:     c.Context,
 		Logger:      c.Logger,
 		Config:      c.Config.Raft,
@@ -76,5 +76,11 @@ func (c *Connector) StartRaft() {
 		MongoClient: c.MongoClient,
 	}.New()
 
-	go raftServer.Start()
+	if c.Config.Raft.ClusterSize > 1 {
+		c.Logger.Info("Starting watcher server using raft")
+		go watcherServer.StartRaft()
+	} else {
+		c.Logger.Info("Starting watcher server")
+		go watcherServer.Start()
+	}
 }
