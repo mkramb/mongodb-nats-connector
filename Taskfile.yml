@@ -1,10 +1,15 @@
 version: '3'
 
 tasks:
+  lint:
+    cmds:
+      - golangci-lint run --fast
+
   compile:
     cmds:
       - go build -o mongodb-nats-connector cmd/connector/main.go
 
   execute:
+    deps: [compile]
     cmds:
       - go run cmd/connector/main.go
