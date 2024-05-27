@@ -2,9 +2,11 @@
 
 ## Functionality
 
-The connector seamlessly synchronizes data between MongoDB and NATS JetStream, thereby offloading error management, retry logic, and duplicate message handling from the services. This functionality is underpinned by the utilization of MongoDB resume tokens. Each change event in MongoDB contains an \_id field that functions as a resume token. By setting the resumeAfter parameter with a specific resume token value, MongoDB can continue the change stream from the exact event marked by that token.
+The connector seamlessly synchronizes data between MongoDB and NATS JetStream, thereby offloading error management, retry logic, and duplicate message handling from the services. This functionality is underpinned by the utilization of MongoDB resume tokens. Each change event in MongoDB contains an `_id` field that functions as a resume token. By setting the resumeAfter parameter with a specific resume token value, MongoDB can continue the change stream from the exact event marked by that token.
 
 Upon processing a change event, the connector persists the corresponding resume token into a designated collection. In the event of a restart, the connector queries this collection to retrieve the most recent token, enabling it to resume the change stream from the last processed event. This ensures reliable and continuous data synchronization without loss or duplication of change events.
+
+Lastly, the connector employs the Raft consensus algorithm to eliminate single points of failure in production environments. This allows for multiple instances of the connector to run concurrently, ensuring high availability and fault tolerance. Only the elected master instance performs the processing, thereby maintaining consistency and reliability in data synchronization.
 
 ## Example Usage
 
