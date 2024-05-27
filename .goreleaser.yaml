@@ -10,7 +10,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/connector/main
+    main: ./cmd/connector
     binary: mongodb-nats-connector
 
 archives:
