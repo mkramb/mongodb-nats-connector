@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.10.7/.schema/devbox.schema.json",
+  "packages": [
+    "kind@0.23.0",
+    "tilt@0.33.10",
+    "golangci-lint@1.58.2",
+    "mongosh@2.2.6",
+    "natscli@0.1.4",
+    "mdcat@2.1.2"
+  ],
+  "shell": {
+    "init_hook": [
+      "mdcat docs/DEVELOPMENT.md"
+    ]
+  }
+}

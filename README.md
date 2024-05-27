@@ -8,7 +8,7 @@ Upon processing a change event, the connector persists the corresponding resume 
 
 Lastly, the connector employs the Raft consensus algorithm to eliminate single points of failure in production environments. This allows for multiple instances of the connector to run concurrently, ensuring high availability and fault tolerance. Only the elected master instance performs the processing, thereby maintaining consistency and reliability in data synchronization.
 
-### Usage
+### Install
 
 Available on dockerhub https://hub.docker.com/r/mkramb/mongodb-nats-connector
 
@@ -16,7 +16,7 @@ Available on dockerhub https://hub.docker.com/r/mkramb/mongodb-nats-connector
 docker pull mkramb/mongodb-nats-connector
 ```
 
-## Example
+## Example Usage
 
 The minimum number of nodes required to tolerate faults and still reach consensus is three.
 Lets start three separate connector instances (in separate terminals):
@@ -39,36 +39,16 @@ To disable raft server, which is useful for local development:
 export RAFT_CLUSTER_SIZE=1
 ```
 
-## Development
+## Development Setup
 
-Prerequisite:
-
-```
-brew install kind
-brew install tilt-dev/tap/tilt
-brew install tilt-dev/tap/ctlptl
-brew install golangci-lint
-brew install mongosh
-brew tap nats-io/nats-tools
-brew install nats-io/nats-tools/nats
-```
-
-Setting up local cluster:
+Use the following install script to get the latest version of [devbox](https://www.jetify.com/devbox/):
 
 ```
-.scripts/kind_cluster_delete.sh
-.scripts/kind_cluster_create.sh
+curl -fsSL https://get.jetify.com/devbox | bash
 ```
 
-Running locally:
+Now start a local shell using:
 
 ```
-tilt up
-tilt down
-```
-
-To only start Nats / Mongo server:
-
-```
-tilt up -- --only-infra
+devbox shell
 ```
