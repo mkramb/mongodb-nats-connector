@@ -6,7 +6,8 @@
     "golangci-lint@1.58.2",
     "mongosh@2.2.6",
     "natscli@0.1.4",
-    "mdcat@2.1.2"
+    "mdcat@2.1.2",
+    "goreleaser@1.26.1"
   ],
   "shell": {
     "init_hook": [

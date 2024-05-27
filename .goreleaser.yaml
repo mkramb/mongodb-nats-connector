@@ -3,11 +3,11 @@ version: 1
 builds:
   - env:
       - CGO_ENABLED=0
+    goarch:
+      - amd64
+      - arm
     goos:
       - linux
-      - windows
-    goarch:
-      - arm64
     main: ./cmd/connector
     binary: mongodb-nats-connector
 
@@ -15,14 +15,9 @@ archives:
   - format: tar.gz
     name_template: >-
       {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        format: zip
+      {{ .Version }}_
+      {{ .Os }}_
+      {{ .Arch }}{{ if eq .Arch "arm" }}v{{ .Arm }}l{{ end }}
     files:
       - LICENSE.md
       - README.md
@@ -36,9 +31,14 @@ changelog:
   use: github
 
 dockers:
-  - image_templates:
-      - "mkramb/mongodb-nats-connector:latest"
-      - "mkramb/mongodb-nats-connector:{{ .Tag }}"
-    dockerfile: Dockerfile.release
+  - id: arm image
     goos: linux
-    goarch: arm64
+    goarch: arm
+    use: buildx
+    image_templates:
+      - "mkramb/mongodb-nats-connector:latest-arm"
+      - "mkramb/mongodb-nats-connector:{{ .Tag }}-arm"
+    dockerfile: Dockerfile.release
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm"

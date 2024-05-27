@@ -1,3 +1,6 @@
-/mongodb-nats-connector
 *.log
 dist/
+
+# local development 
+/mongodb-nats-connector
+.devbox
