@@ -8,7 +8,15 @@ Upon processing a change event, the connector persists the corresponding resume 
 
 Lastly, the connector employs the Raft consensus algorithm to eliminate single points of failure in production environments. This allows for multiple instances of the connector to run concurrently, ensuring high availability and fault tolerance. Only the elected master instance performs the processing, thereby maintaining consistency and reliability in data synchronization.
 
-## Example Usage
+### Usage
+
+Available on dockerhub https://hub.docker.com/r/mkramb/mongodb-nats-connector
+
+```
+docker pull mkramb/mongodb-nats-connector
+```
+
+## Example
 
 The minimum number of nodes required to tolerate faults and still reach consensus is three.
 Lets start three separate connector instances (in separate terminals):
@@ -31,7 +39,7 @@ To disable raft server, which is useful for local development:
 export RAFT_CLUSTER_SIZE=1
 ```
 
-## Local Development
+## Development
 
 Prerequisite:
 
