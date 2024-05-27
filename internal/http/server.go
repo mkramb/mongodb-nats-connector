@@ -59,7 +59,11 @@ func (s *Server) Start() {
 	}()
 
 	defer s.Logger.Info("Closing http client")
-	defer s.Http.Shutdown(s.Context)
+	defer func() {
+		if err := s.Http.Shutdown(s.Context); err != nil {
+			panic("Error stopping http server")
+		}
+	}()
 
 	<-s.Context.Done()
 }

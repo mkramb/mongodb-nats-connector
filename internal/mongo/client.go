@@ -71,6 +71,8 @@ func (c *Client) Close() {
 	err := c.Conn.Ping(c.Context, nil)
 
 	if err == nil {
-		c.Conn.Disconnect(c.Context)
+		if err := c.Conn.Disconnect(c.Context); err != nil {
+			panic("Error disconnecting from mongo server")
+		}
 	}
 }
