@@ -48,8 +48,8 @@ brew install nats-io/nats-tools/nats
 Setting up local cluster:
 
 ```
-.scripts/cluster_delete.sh
-.scripts/cluster_create.sh
+.scripts/kind_cluster_delete.sh
+.scripts/kind_cluster_create.sh
 ```
 
 Running locally:
