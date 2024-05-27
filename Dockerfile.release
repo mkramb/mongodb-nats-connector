@@ -1,0 +1,3 @@
+FROM scratch
+ENTRYPOINT ["/mongodb-nats-connector"]
+COPY mongodb-nats-connector /

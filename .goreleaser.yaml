@@ -6,9 +6,7 @@ builds:
     goos:
       - linux
       - windows
-      - darwin
     goarch:
-      - amd64
       - arm64
     main: ./cmd/connector
     binary: mongodb-nats-connector
@@ -41,4 +39,6 @@ dockers:
   - image_templates:
       - "mkramb/mongodb-nats-connector:latest"
       - "mkramb/mongodb-nats-connector:{{ .Tag }}"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.release
+    goos: linux
+    goarch: arm64
