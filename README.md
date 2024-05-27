@@ -39,6 +39,7 @@ Prerequisite:
 brew install kind
 brew install tilt-dev/tap/tilt
 brew install tilt-dev/tap/ctlptl
+brew install golangci-lint
 brew install mongosh
 brew tap nats-io/nats-tools
 brew install nats-io/nats-tools/nats

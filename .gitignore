@@ -1,2 +1,3 @@
 /mongodb-nats-connector
 *.log
+dist/
