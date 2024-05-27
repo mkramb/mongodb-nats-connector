@@ -1,6 +1,14 @@
 {
+    "editor.accessibilitySupport": "off",
+    "diffEditor.ignoreTrimWhitespace": false,
+    // golang
+    "go.useLanguageServer": true,
+    "go.formatTool": "gofmt",
     "go.lintTool": "golangci-lint",
     "go.lintFlags": [
         "--fast"
-    ]
+    ],
+    "[go]": {
+        "editor.formatOnSave": true
+    }
 }
