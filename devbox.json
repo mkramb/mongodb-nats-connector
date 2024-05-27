@@ -7,7 +7,8 @@
     "mongosh@2.2.6",
     "natscli@0.1.4",
     "mdcat@2.1.2",
-    "goreleaser@1.26.1"
+    "goreleaser@1.26.1",
+    "ctlptl@0.8.28"
   ],
   "shell": {
     "init_hook": [
