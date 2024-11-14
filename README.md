@@ -32,7 +32,7 @@ HTTP_PORT=3001 ./mongodb-nats-connector
 HTTP_PORT=3002 ./mongodb-nats-connector
 ```
 
-To disable raft server, which is useful for local development:
+To disable RAFT server, which is useful for local development:
 
 ```
 # by default set to 3
